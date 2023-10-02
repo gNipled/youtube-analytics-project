@@ -9,12 +9,12 @@ class Video:
     Class for YouTube videos
     """
     def __init__(self, video_id: str):
-        self.video_id = video_id
+        self.__video_id = video_id
         data = Video.get_service().videos().list(part='snippet,statistics,contentDetails,topicDetails',
-                                       id=self.video_id
+                                       id=self.__video_id
                                        ).execute()
-        self.name = data["items"][0]["snippet"]["title"]
-        self.url = f'https://www.youtube.com/watch?v={video_id}'
+        self.title = data["items"][0]["snippet"]["title"]
+        self.url = f'https://www.youtube.com/watch?v={self.__video_id}'
         self.view_count = data["items"][0]["statistics"]["viewCount"]
         self.like_count = data["items"][0]["statistics"]["likeCount"]
 
@@ -22,7 +22,7 @@ class Video:
         return str(self.name)
 
     @classmethod
-    def get_service(self):
+    def get_service(cls):
         return build('youtube', 'v3', developerKey=API_KEY)
 
 
@@ -32,4 +32,4 @@ class PLVideo(Video):
     """
     def __init__(self, video_id: str, plist_id: str):
         super().__init__(video_id)
-        self.plist_id = plist_id
+        self.__plist_id = plist_id
