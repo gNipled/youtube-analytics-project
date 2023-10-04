@@ -1,5 +1,6 @@
 import os
 from googleapiclient.discovery import build
+from src.exceptions import VideoIdError
 
 API_KEY = os.getenv('YT_API_KEY')
 
@@ -10,16 +11,34 @@ class Video:
     """
     def __init__(self, video_id: str):
         self.__video_id = video_id
-        data = Video.get_service().videos().list(part='snippet,statistics,contentDetails,topicDetails',
-                                       id=self.__video_id
-                                       ).execute()
-        self.title = data["items"][0]["snippet"]["title"]
-        self.url = f'https://www.youtube.com/watch?v={self.__video_id}'
-        self.view_count = data["items"][0]["statistics"]["viewCount"]
-        self.like_count = data["items"][0]["statistics"]["likeCount"]
+        try:
+            self.id_check()
+        except VideoIdError:
+            self.title = None
+            self.url = None
+            self.view_count = None
+            self.like_count = None
+        else:
+            data = Video.get_service().videos().list(part='snippet,statistics,contentDetails,topicDetails',
+                                                     id=self.__video_id
+                                                     ).execute()
+            self.title = data["items"][0]["snippet"]["title"]
+            self.url = f'https://www.youtube.com/watch?v={self.__video_id}'
+            self.view_count = data["items"][0]["statistics"]["viewCount"]
+            self.like_count = data["items"][0]["statistics"]["likeCount"]
 
     def __str__(self):
-        return str(self.name)
+        return str(self.title)
+
+    def id_check(self):
+        data = Video.get_service().videos().list(part='snippet,statistics,contentDetails,topicDetails',
+                                                 id=self.__video_id
+                                                 ).execute()
+        if len(data["items"]) <= 0:
+            raise VideoIdError
+        else:
+            return True
+
 
     @classmethod
     def get_service(cls):
